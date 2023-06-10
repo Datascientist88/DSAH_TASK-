@@ -48,12 +48,12 @@ df_saudization = (
 )
 # plot in a line chart
 
-fig2 = px.line(
+fig3 = px.line(
     x=df_saudization["YEAR"],
     y=df_saudization["count"],
     title="Total Employement of Saudis",
 )
-fig2.update_layout(
+fig3.update_layout(
     xaxis=dict(showgrid=False),
     yaxis=dict(showgrid=False),
     hovermode="x unified",
@@ -61,9 +61,9 @@ fig2.update_layout(
     yaxis_title="SAUDIS",
     title=dict(x=0.5),
 )
-fig2.layout.template = "plotly_dark"
-fig2.update_traces(line=dict(color="cyan"), marker=dict(size=8, symbol="diamond"))
-fig2.update_traces(mode="lines")
+fig3.layout.template = "plotly_dark"
+fig3.update_traces(line=dict(color="cyan"), marker=dict(size=8, symbol="diamond"))
+fig3.update_traces(mode="lines")
 
 # set the layout for the application----------------------------------------------
 app = dash.Dash(
@@ -94,7 +94,8 @@ app.layout = dbc.Container(
                             multi=False,
                             value=2020,
                             options=[
-                                {"label": x, "value": x} for x in df["YEAR"].unique()
+                                {"label": x, "value": x}
+                                for x in sorted(df["YEAR"].unique())
                             ],
                             clearable=False,
                             style={"color": "#000000"},
@@ -139,7 +140,11 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    [dcc.Loading(dcc.Graph(id="saudization", figure=fig2), type="cube")],
+                    [
+                        dcc.Loading(
+                            dcc.Graph(id="saudization", figure=fig3), type="cube"
+                        )
+                    ],
                     width=6,
                     xs=12,
                     sm=12,
@@ -158,8 +163,8 @@ app.layout = dbc.Container(
     [
         Output("gender", "figure"),
         Output("employee_count", "figure"),
-        Input("selected_year", "value"),
-    ]
+    ],
+    Input("selected_year", "value"),
 )
 def update_graph(year):
     filtered_df = df[df["YEAR"] == year]
@@ -179,7 +184,7 @@ def update_graph(year):
     )
     fig1.update_layout(
         barmode="group",
-        title=f"Gender Count By Nationality in { year}",
+        title=f"Gender Count By Nationality in {year}",
         xaxis_title="Nationality",
         yaxis_title="Gender Count",
         legend=dict(
@@ -200,15 +205,15 @@ def update_graph(year):
         .sort_values(by="count", ascending=False)
     )
 
-    fig3 = px.bar(
+    fig2 = px.bar(
         df_nationals,
         x=df_nationals["count"],
         y=df_nationals["NATIONALITY"],
-        title=f"Employee count per Nationality in { year}",
+        title=f"Employee count per Nationality in {year}",
     )
-    fig3.update_traces(marker_color="cyan")
-    fig3.layout.template = "plotly_dark"
-    fig3.update_layout(
+    fig2.update_traces(marker_color="cyan")
+    fig2.layout.template = "plotly_dark"
+    fig2.update_layout(
         title=dict(x=0.5),
         yaxis=dict(
             showticklabels=True,
@@ -216,7 +221,7 @@ def update_graph(year):
         ),
     )
 
-    return fig1,  fig3
+    return fig1, fig2
 
 
 if __name__ == "__main__":
