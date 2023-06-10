@@ -40,6 +40,30 @@ average_employee_tenure_days = round(
 )
 average_employee_annual_tenure = round(average_employee_tenure_days / 365, 1)
 # KPIs--------------------------------------------------------------------
+# annual Saudization Rate
+# annual Saudization Rate
+filtered_saudi = df[(df["NATIONALITY"] == "Saudi")]
+df_saudization = (
+    filtered_saudi.groupby(["YEAR"])["NATIONALITY"].size().reset_index(name="count")
+)
+# plot in a line chart
+
+fig2 = px.line(
+    x=df_saudization["YEAR"],
+    y=df_saudization["count"],
+    title="Total Employement of Saudis",
+)
+fig2.update_layout(
+    xaxis=dict(showgrid=False),
+    yaxis=dict(showgrid=False),
+    hovermode="x unified",
+    xaxis_title="YEAR",
+    yaxis_title="SAUDIS",
+    title=dict(x=0.5),
+)
+fig2.layout.template = "plotly_dark"
+fig2.update_traces(line=dict(color="cyan"), marker=dict(size=8, symbol="diamond"))
+fig2.update_traces(mode="lines")
 
 # set the layout for the application----------------------------------------------
 app = dash.Dash(
@@ -53,7 +77,14 @@ server = app.server
 app.layout = dbc.Container(
     [
         dbc.Row([html.H3("HUMAN RESOURCES DASHBOARD", className="text-center mb-4")]),
-        dbc.Row([html.Marquee(f'Total Employees Since 2020: {total_employee_count} --TOTAL FEMALE EMPLOYEES: {total_female_employees}--PERCENTAGE OF FEMALE EMPLOYEES : {percentage_female_of_total}%--SAUDIZATION:{Saudization_rate}%---AVERAGE ANNUAL TENURE: {average_employee_annual_tenure} YEARS')],style={'color':'cyan','font-size':'60px'}),
+        dbc.Row(
+            [
+                html.Marquee(
+                    f"Total Employees Since 2020: {total_employee_count} --TOTAL FEMALE EMPLOYEES: {total_female_employees}--PERCENTAGE OF FEMALE EMPLOYEES : {percentage_female_of_total}%--SAUDIZATION:{Saudization_rate}%---AVERAGE ANNUAL TENURE: {average_employee_annual_tenure} YEARS"
+                )
+            ],
+            style={"color": "cyan"},
+        ),
         dbc.Row(
             [
                 dbc.Col(
@@ -90,7 +121,11 @@ app.layout = dbc.Container(
                     xl=5,
                 ),
                 dbc.Col(
-                    [dcc.Loading(dcc.Graph(id="employee_count", figure={}), type="cube")],
+                    [
+                        dcc.Loading(
+                            dcc.Graph(id="employee_count", figure={}), type="cube"
+                        )
+                    ],
                     width=6,
                     xs=12,
                     sm=12,
@@ -100,15 +135,11 @@ app.layout = dbc.Container(
                 ),
             ]
         ),
+        html.Hr(),
         dbc.Row(
             [
-                
                 dbc.Col(
-                    [
-                        dcc.Loading(
-                            dcc.Graph(id="saudization", figure={}), type="cube"
-                        )
-                    ],
+                    [dcc.Loading(dcc.Graph(id="saudization", figure=fig2), type="cube")],
                     width=6,
                     xs=12,
                     sm=12,
@@ -126,7 +157,6 @@ app.layout = dbc.Container(
 @app.callback(
     [
         Output("gender", "figure"),
-        Output("saudization", "figure"),
         Output("employee_count", "figure"),
         Input("selected_year", "value"),
     ]
@@ -163,42 +193,21 @@ def update_graph(year):
     )
     fig1.update_traces(marker_line_width=0)
     fig1.layout.template = "plotly_dark"
-    # annual Saudization Rate
-    filtered_saudi = df[(df["NATIONALITY"] == "Saudi")&(df['YEAR']==year)]
-    df_saudization = (
-        filtered_saudi.groupby(["YEAR"])["NATIONALITY"].size().reset_index(name="count")
-    )
-    # plot in a line chart
-    fig2 = px.line(
-        x=df_saudization["YEAR"],
-        y=df_saudization["count"],
-        title="Total Employement of Saudis",
-    )
-    fig2.update_layout(
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=False),
-        hovermode="x unified",
-        xaxis_title="YEAR",
-        yaxis_title="SAUDIS",
-        title=dict(x=0.5),
-    )
-    fig2.layout.template = "plotly_dark"
-    fig2.update_traces(line=dict(color="cyan"), marker=dict(size=8, symbol="diamond"))
-    fig2.update_traces(mode="lines")
     df_nationals = (
         filtered_df.groupby(["NATIONALITY"])
         .size()
         .reset_index(name="count")
         .sort_values(by="count", ascending=False)
     )
+
     fig3 = px.bar(
         df_nationals,
         x=df_nationals["count"],
         y=df_nationals["NATIONALITY"],
-        title="Employee count per Nationality",
+        title=f"Employee count per Nationality in { year}",
     )
     fig3.update_traces(marker_color="cyan")
-    fig3.layout.template = "filtered_dfplotly_dark"
+    fig3.layout.template = "plotly_dark"
     fig3.update_layout(
         title=dict(x=0.5),
         yaxis=dict(
@@ -207,7 +216,7 @@ def update_graph(year):
         ),
     )
 
-    return fig1, fig2, fig3
+    return fig1,  fig3
 
 
 if __name__ == "__main__":
